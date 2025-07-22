@@ -50,7 +50,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const port = process.env.PORT;
-server.listen(port, '0.0.0.0', () => {
+const port = process.env.PORT ||5050;
+server.listen(port,() => {
   console.log(`Server running on http://0.0.0.0:${port}`);
 });
