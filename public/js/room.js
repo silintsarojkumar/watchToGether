@@ -18,16 +18,13 @@ async function getMediaStream(deviceId = null) {
   if (currentStream) {
     currentStream.getTracks().forEach(track => track.stop());
   }
-
   const constraints = {
     video: deviceId ? { deviceId: { exact: deviceId } } : true,
     audio: true
   };
-
   currentStream = await navigator.mediaDevices.getUserMedia(constraints);
   myVideo.srcObject = currentStream;
   myVideo.play();
-
   return currentStream;
 }
 
@@ -105,22 +102,40 @@ function loadVideo(url, state = null) {
   video.src = url;
   video.controls = true;
   video.autoplay = true;
+  video.muted = true;
   video.className = 'shared';
   sharedVideo.appendChild(video);
   activePlayer = video;
 
   if (state) {
     suppressEmit = true;
-    video.currentTime = state.currentTime;
-    if (state.isPlaying) video.play();
-    else video.pause();
-    setTimeout(() => suppressEmit = false, 500);
+    video.addEventListener('loadedmetadata', () => {
+      video.currentTime = state.currentTime || 0;
+      if (state.isPlaying) video.play();
+      else video.pause();
+    });
+    setTimeout(() => suppressEmit = false, 1000);
   }
 
   video.addEventListener('play', () => {
-    if (!suppressEmit) socket.emit('video-control', { action: 'play', currentTime: video.currentTime });
+    if (!suppressEmit) {
+      socket.emit('video-control', {
+        action: 'play',
+        currentTime: video.currentTime
+      });
+    }
   });
+
   video.addEventListener('pause', () => {
-    if (!suppressEmit) socket.emit('video-control', { action: 'pause', currentTime: video.currentTime });
+    if (!suppressEmit) {
+      socket.emit('video-control', {
+        action: 'pause',
+        currentTime: video.currentTime
+      });
+    }
+  });
+
+  video.play().catch(err => {
+    console.warn('Autoplay failed:', err);
   });
 }

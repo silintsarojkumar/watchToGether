@@ -13,10 +13,17 @@
     #shared-video { display: flex; justify-content: center; margin-top: 20px; }
     iframe, video.shared { width: 640px; height: 360px; }
     #controls { text-align: center; margin: 10px; }
+    #link-copy-box { text-align: center; margin: 10px; }
+    #link-copy-box input { width: 60%; padding: 5px; }
+    #link-copy-box button { padding: 5px 10px; }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center">Room: <%= roomId %></h2>
+  <h2 style="text-align:center">Room Link</h2>
+  <div id="link-copy-box">
+    <input type="text" id="room-link" readonly value="" />
+    <button onclick="copyLink()">Copy Link</button>
+  </div>
   <form id="video-form" style="text-align:center">
     <input id="video-url" type="text" placeholder="YouTube or video URL" style="width:400px" />
     <button type="submit">Share Video</button>
@@ -28,5 +35,15 @@
   <div id="video-grid">
     <video id="my-video" autoplay muted></video>
   </div>
+  <script>
+    document.getElementById('room-link').value = window.location.href;
+    function copyLink() {
+      const linkInput = document.getElementById('room-link');
+      linkInput.select();
+      linkInput.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+      alert('Link copied to clipboard!');
+    }
+  </script>
 </body>
 </html>
