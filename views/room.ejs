@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Watch Together Room</title>
+  <title>Watch & Video Call Room</title>
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/peerjs@1.3.1/dist/peerjs.min.js"></script>
   <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="https://api.dmcdn.net/all.js"></script>
   <script defer src="/js/room.js"></script>
   <style>
-    body { font-family: sans-serif; }
-    video { width: 300px; margin: 5px; }
-    #video-grid { display: flex; flex-wrap: wrap; }
-    #shared-video iframe, #shared-video video { margin-top: 10px; width: 640px; height: 360px; }
+    body { font-family: Arial; margin: 0; padding: 0; }
+    #video-grid { display: flex; flex-wrap: wrap; padding: 10px; }
+    video { width: 300px; margin: 5px; border-radius: 10px; }
+    #shared-video { display: flex; justify-content: center; margin-top: 20px; }
+    iframe, video.shared { width: 640px; height: 360px; }
+    #controls { text-align: center; margin: 10px; }
   </style>
 </head>
 <body>
-  <h1>Room ID: <%= roomId %></h1>
-
-  <form id="video-form">
-    <input type="text" id="video-url" placeholder="Paste YouTube, Dailymotion or MP4 link" style="width: 400px;" />
-    <button type="submit">Watch Together</button>
+  <h2 style="text-align:center">Room: <%= roomId %></h2>
+  <form id="video-form" style="text-align:center">
+    <input id="video-url" type="text" placeholder="YouTube or video URL" style="width:400px" />
+    <button type="submit">Share Video</button>
   </form>
-
+  <div id="controls">
+    <button id="switch-camera">Switch Camera</button>
+  </div>
   <div id="shared-video"></div>
-
-  <video id="my-video" autoplay muted></video>
-  <div id="video-grid"></div>
+  <div id="video-grid">
+    <video id="my-video" autoplay muted></video>
+  </div>
 </body>
 </html>
