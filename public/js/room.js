@@ -8,6 +8,7 @@ const sharedVideo = document.getElementById('shared-video');
 let ytPlayer = null;
 let dmPlayer = null;
 let activePlayer = null;
+let suppressEmit = false;
 
 myVideo.muted = true;
 const peer = new Peer();
@@ -85,9 +86,9 @@ function displaySyncedVideo(url) {
       events: {
         'onReady': (event) => {
           activePlayer = event.target;
-          event.target.playVideo();
         },
         'onStateChange': (event) => {
+          if (suppressEmit) return;
           if (event.data === YT.PlayerState.PLAYING) {
             socket.emit('video-control', { action: 'play', currentTime: event.target.getCurrentTime() });
           } else if (event.data === YT.PlayerState.PAUSED) {
@@ -110,12 +111,12 @@ function displaySyncedVideo(url) {
       dmPlayer = player;
       activePlayer = player;
       player.addEventListener('play', () => {
-        player.currentTime.then(t => {
+        if (!suppressEmit) player.currentTime.then(t => {
           socket.emit('video-control', { action: 'play', currentTime: t });
         });
       });
       player.addEventListener('pause', () => {
-        player.currentTime.then(t => {
+        if (!suppressEmit) player.currentTime.then(t => {
           socket.emit('video-control', { action: 'pause', currentTime: t });
         });
       });
@@ -131,37 +132,32 @@ function displaySyncedVideo(url) {
     activePlayer = video;
 
     video.addEventListener('play', () => {
-      socket.emit('video-control', { action: 'play', currentTime: video.currentTime });
+      if (!suppressEmit) socket.emit('video-control', { action: 'play', currentTime: video.currentTime });
     });
 
     video.addEventListener('pause', () => {
-      socket.emit('video-control', { action: 'pause', currentTime: video.currentTime });
+      if (!suppressEmit) socket.emit('video-control', { action: 'pause', currentTime: video.currentTime });
     });
   }
 }
 
 socket.on('video-control', data => {
   if (!activePlayer) return;
+  suppressEmit = true;
 
   if (typeof activePlayer.seekTo === 'function') {
-    if (data.action === 'play') {
-      activePlayer.seekTo(data.currentTime);
-      activePlayer.playVideo();
-    } else if (data.action === 'pause') {
-      activePlayer.seekTo(data.currentTime);
-      activePlayer.pauseVideo();
-    }
+    activePlayer.seekTo(data.currentTime);
+    if (data.action === 'play') activePlayer.playVideo();
+    else activePlayer.pauseVideo();
   } else if (typeof activePlayer.currentTime !== 'undefined') {
-    if (data.action === 'play') {
-      activePlayer.currentTime = data.currentTime;
-      activePlayer.play();
-    } else if (data.action === 'pause') {
-      activePlayer.currentTime = data.currentTime;
-      activePlayer.pause();
-    }
+    activePlayer.currentTime = data.currentTime;
+    if (data.action === 'play') activePlayer.play();
+    else activePlayer.pause();
   } else if (typeof activePlayer.seek === 'function') {
     activePlayer.seek(data.currentTime);
     if (data.action === 'play') activePlayer.play();
     else activePlayer.pause();
   }
+
+  setTimeout(() => suppressEmit = false, 500);
 });
