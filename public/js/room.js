@@ -1,3 +1,4 @@
+// public/js/room.js
 const socket = io('/');
 const peer = new Peer();
 const videoGrid = document.getElementById('video-grid');
@@ -53,16 +54,20 @@ getMediaStream().then(stream => {
       video.addEventListener('loadedmetadata', () => video.play());
       videoGrid.appendChild(video);
     });
+    call.on('close', () => video.remove());
   });
 
   socket.on('user-connected', userId => {
-    const call = peer.call(userId, stream);
-    const video = document.createElement('video');
-    call.on('stream', userStream => {
-      video.srcObject = userStream;
-      video.addEventListener('loadedmetadata', () => video.play());
-      videoGrid.appendChild(video);
-    });
+    setTimeout(() => {
+      const call = peer.call(userId, stream);
+      const video = document.createElement('video');
+      call.on('stream', userStream => {
+        video.srcObject = userStream;
+        video.addEventListener('loadedmetadata', () => video.play());
+        videoGrid.appendChild(video);
+      });
+      call.on('close', () => video.remove());
+    }, 1000);
   });
 });
 
@@ -98,6 +103,13 @@ socket.on('sync-video', data => {
 
 function loadVideo(url, state = null) {
   sharedVideo.innerHTML = '';
+
+  // Only proceed if URL ends with .mp4 (or is a direct video file)
+  if (!url.endsWith('.mp4')) {
+    alert('Only direct MP4 video links are supported currently.');
+    return;
+  }
+
   const video = document.createElement('video');
   video.src = url;
   video.controls = true;

@@ -3,7 +3,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { v4: uuidV4 } = require('uuid');
 const app = express();
-
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -50,7 +49,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const port = process.env.PORT ||5050;
-server.listen(port,() => {
-  console.log(`Server running on http://0.0.0.0:${port}`);
+const port = process.env.PORT || 5000;
+server.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
